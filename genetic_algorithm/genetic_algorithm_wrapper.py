@@ -22,7 +22,17 @@ class GeneticAlgorithmWrapper(algorithm_wrapper):
         fitness_calculator = self.fitness_calculator(train_data)
         population = self.__create_population(self.population_size, fitness_calculator)
 
+        total_best_individual = None
+
         for _ in range(self.generations):
+            self.__calculate_population_fitness(population)
+            best, selected = self.selection_behaviour.select(population)
+
+            if total_best_individual is None or best.fitness < total_best_individual.fitness:
+                total_best_individual = best
+
+            crossed_over = self.crossover_behaviour.crossover(population)
+
             pass
 
     def __create_population(self, population_size, fitness_calculator) -> list[SolutionRepresentation]:
