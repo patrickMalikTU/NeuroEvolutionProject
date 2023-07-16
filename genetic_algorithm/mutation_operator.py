@@ -26,7 +26,7 @@ class SwapMutation(MutationOperator):
                     val = individual.solution_representation[i]
                     individual.solution_representation[i] = individual.solution_representation[random_gene_index]
                     individual.solution_representation[random_gene_index] = val
-                    
+
 
 class ZeroMutation(MutationOperator):
 
