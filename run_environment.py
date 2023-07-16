@@ -10,3 +10,7 @@ class algorithm_wrapper:
     @abstractmethod
     def test(self, test_data):
         pass
+
+    @abstractmethod
+    def get_current_model(self):
+        pass

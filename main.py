@@ -8,13 +8,19 @@ import torchvision.transforms as transforms
 from sklearn.model_selection import KFold
 from torch.utils.data import SubsetRandomSampler, DataLoader
 
+from genetic_algorithm.construction_heuristic import NormalConstructionHeuristic
+from genetic_algorithm.crossover_operator import UniformCrossoverOperator
+from genetic_algorithm.fitness_calculator import ErrorFitnessCalculator
+from genetic_algorithm.genetic_algorithm_wrapper import GeneticAlgorithmWrapper
+from genetic_algorithm.mutation_operator import ZeroMutation
+from genetic_algorithm.selection_behaviour import TournamentSelection
 from neural_network.le_net_algorithm_wrapper import LeNetAlgorithmWrapper
 from neural_network.network import LeNetFromPaper
 from util import state_dict_to_list
 
 
 def main():
-    k = 10
+    k = 5
     batch_size = 64
     splits = KFold(n_splits=k, shuffle=True, random_state=42)
 
@@ -33,10 +39,21 @@ def main():
                                                   transforms.ToTensor()]),
                                               download=True)
 
-    algorithm_wrapper = LeNetAlgorithmWrapper(0.001, 10)
+    algorithm_wrapper_le_net = LeNetAlgorithmWrapper(0.001, 10)
+    algorithm_wrapper_genetic = GeneticAlgorithmWrapper(
+        50,
+        20,
+        NormalConstructionHeuristic(),
+        TournamentSelection(3),
+        UniformCrossoverOperator(0.8),
+        ZeroMutation(),
+        ErrorFitnessCalculator
+    )
 
-    loss_list = []
+    # loss_list = []
     error_list = []
+
+    algorithm_wrapper = algorithm_wrapper_genetic
 
     # k-fold crossvalidation testing
     for fold, (train_idx, val_idx) in enumerate(splits.split(np.arange(len(train_dataset)))):
@@ -48,8 +65,9 @@ def main():
         validation_sampler = SubsetRandomSampler(val_idx)
         validation_loader = DataLoader(train_dataset, batch_size=batch_size, sampler=validation_sampler)
 
-        loss_list_results, error_list_results = algorithm_wrapper.train(train_loader, validation_loader)
-        loss_list += loss_list_results
+        error_list_results = algorithm_wrapper.train(train_loader, validation_loader)
+        # loss_list_results, error_list_results = algorithm_wrapper.train(train_loader, validation_loader)
+        # loss_list += loss_list_results
         error_list += error_list_results
 
     # test results
@@ -61,7 +79,7 @@ def main():
     print(f'{100 - error}% accuracy')
 
     # plot data
-    plot_loss_and_error(loss_list, error_list)
+    # plot_loss_and_error(loss_list, error_list)
 
 
 def plot_loss_and_error(loss_list, error_list):
@@ -209,4 +227,4 @@ def test():
 
 
 if __name__ == '__main__':
-    test()
+    main()

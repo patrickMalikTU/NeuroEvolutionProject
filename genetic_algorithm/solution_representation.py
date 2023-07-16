@@ -7,6 +7,6 @@ class SolutionRepresentation:
 
     def calculate_fitness(self):
         if self.fitness is None:
-            self.fitness = self.fitness_calculator.calculate_fitness(self)
+            self.fitness = self.fitness_calculator.calculate_fitness(self.solution_representation)
 
         return self.fitness

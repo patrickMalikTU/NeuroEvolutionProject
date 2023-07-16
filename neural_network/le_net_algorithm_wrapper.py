@@ -27,7 +27,7 @@ class LeNetAlgorithmWrapper(algorithm_wrapper):
             # validation run
             error_list.append(self.__validation_run(validation_data))
 
-        return loss_list, error_list
+        return error_list
 
     def __training_run(self, training_data):
         for i, (images, labels) in enumerate(training_data):
@@ -63,3 +63,6 @@ class LeNetAlgorithmWrapper(algorithm_wrapper):
 
     def test(self, test_data: DataLoader):
         return self.__validation_run(test_data)
+
+    def get_current_model(self):
+        return self.model
