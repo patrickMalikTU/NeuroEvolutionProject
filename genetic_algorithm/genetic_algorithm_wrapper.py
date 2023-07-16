@@ -31,7 +31,8 @@ class GeneticAlgorithmWrapper(algorithm_wrapper):
             if total_best_individual is None or best.fitness < total_best_individual.fitness:
                 total_best_individual = best
 
-            crossed_over = self.crossover_behaviour.crossover(population)
+            crossed_over = self.crossover_behaviour.crossover(selected)
+            mutated = self.mutation_behaviour.mutate(crossed_over)
 
             pass
 
