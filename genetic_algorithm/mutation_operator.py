@@ -50,3 +50,16 @@ class FactorMutation(MutationOperator):
                 if random.random() < self.mutation_rate:
                     factor = random.uniform(self.min_factor, self.max_factor)
                     individual.solution_representation[i] *= factor
+
+
+class NormalDistributionMutationOperator(MutationOperator):
+    def __init__(self, norm_sigma=0.01, mutation_rate=1 / SOLUTION_SIZE):
+        super(NormalDistributionMutationOperator, self).__init__(mutation_rate)
+        self.norm_sigma = norm_sigma
+
+    def mutate(self, population) -> None:
+        for individual in population:
+            for i in range(len(individual.solution_representation)):
+                if random.random() < self.mutation_rate:
+                    individual.solution_representation[i] = random.gauss(individual.solution_representation[i],
+                                                                         self.norm_sigma)
