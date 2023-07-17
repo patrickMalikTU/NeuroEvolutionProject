@@ -68,6 +68,43 @@ class NPointCrossoverOperator(CrossoverOperator):
         return crossed_over
 
 
+class LayerCrossoverOperator(CrossoverOperator):
+
+    def __init__(self, crossover_rate):
+        super(LayerCrossoverOperator, self).__init__(crossover_rate)
+
+        self.layer_numbers = [6 * 1 * 5 * 5, 6, 16 * 6 * 5 * 5, 16, 120 * 400, 120, 84 * 120, 84, 10 * 84, 10]
+
+    def crossover(self, population: list[SolutionRepresentation]) -> list[SolutionRepresentation]:
+        fitness_calculator = population[0].fitness_calculator
+        n_crossovers = floor((self.crossover_rate * len(population)) / 2)
+
+        crossed_over = []
+
+        for _ in range(n_crossovers):
+            parents = random.sample(population, 2)
+
+            first_representation = parents[0].solution_representation
+            second_representation = parents[1].solution_representation
+
+            first_result = []
+            second_result = []
+
+            cursor = 0
+            for number_of_current_layer in self.layer_numbers:
+                if random.random() < 0.5:
+                    first_result += first_representation[cursor:cursor + number_of_current_layer]
+                    second_result += second_representation[cursor:cursor + number_of_current_layer]
+                else:
+                    second_result += first_representation[cursor:cursor + number_of_current_layer]
+                    first_result += second_representation[cursor:cursor + number_of_current_layer]
+
+                cursor += number_of_current_layer
+            crossed_over += [first_result, second_result]
+
+        return crossed_over
+
+
 class UniformCrossoverOperator(CrossoverOperator):
 
     def __init__(self, crossover_rate, uniform_prob=0.5):
