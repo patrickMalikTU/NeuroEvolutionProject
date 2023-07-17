@@ -100,7 +100,10 @@ class LayerCrossoverOperator(CrossoverOperator):
                     first_result += second_representation[cursor:cursor + number_of_current_layer]
 
                 cursor += number_of_current_layer
-            crossed_over += [first_result, second_result]
+            crossed_over += [
+                SolutionRepresentation(first_result, fitness_calculator),
+                SolutionRepresentation(second_result, fitness_calculator)
+            ]
 
         return crossed_over
 
