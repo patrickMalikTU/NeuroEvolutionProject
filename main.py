@@ -1,4 +1,6 @@
 # Load in relevant libraries, and alias where appropriate
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -7,10 +9,10 @@ from torch.utils.data import SubsetRandomSampler, DataLoader
 
 from data import DataProvider, Dataset
 from genetic_algorithm.construction_heuristic import NormalConstructionHeuristic
-from genetic_algorithm.crossover_operator import UniformCrossoverOperator
-from genetic_algorithm.fitness_calculator import ErrorFitnessCalculator
+from genetic_algorithm.crossover_operator import FastUniformCrossoverOperator
+from genetic_algorithm.fitness_calculator import CrossEntropyLossFitnessCalculator
 from genetic_algorithm.genetic_algorithm_wrapper import GeneticAlgorithmWrapper
-from genetic_algorithm.mutation_operator import FactorMutation
+from genetic_algorithm.mutation_operator import BinomialDistributionMutationOperator
 from genetic_algorithm.selection_behaviour import TournamentSelection
 from neural_network.le_net_algorithm_wrapper import LeNetAlgorithmWrapper
 
@@ -22,21 +24,35 @@ def main():
 
     train_dataset, test_dataset = DataProvider.provide_data_set(Dataset.MNIST)
 
-    algorithm_wrapper_le_net = LeNetAlgorithmWrapper(0.001, 10)
+    # tuning results
+
+    # MNIST Fashion
+    # Configuration(values={
+    #   'epochs': 42,
+    #   'learning_rate': 0.007156576937659228,
+    # })
+
+    # MNIST
+    # LeNetAlgorithmWrapper(0.043564649850770354, 45)
+
+    algorithm_wrapper_le_net = LeNetAlgorithmWrapper(0.007156576937659228, 15)
     algorithm_wrapper_genetic = GeneticAlgorithmWrapper(
-        50,
-        50,
+        150,
+        150,
         NormalConstructionHeuristic(),
-        TournamentSelection(3),
-        UniformCrossoverOperator(0.8),
-        FactorMutation(mutation_rate=.05),
-        ErrorFitnessCalculator
+        TournamentSelection(4),
+        FastUniformCrossoverOperator(crossover_rate=0.8),
+        BinomialDistributionMutationOperator(),
+        CrossEntropyLossFitnessCalculator
     )
 
     # loss_list = []
     error_list = []
+    acc_list = []
 
-    algorithm_wrapper = algorithm_wrapper_genetic
+    algorithm_wrapper = algorithm_wrapper_le_net
+
+    begin = time.perf_counter_ns()
 
     # k-fold crossvalidation testing
     for fold, (train_idx, val_idx) in enumerate(splits.split(np.arange(len(train_dataset)))):
@@ -53,6 +69,8 @@ def main():
         # loss_list += loss_list_results
         error_list += error_list_results
 
+        acc_list.append(algorithm_wrapper.test(train_loader))
+
     # test results
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                               batch_size=batch_size,
@@ -61,9 +79,16 @@ def main():
     error = algorithm_wrapper.test(test_loader)
     print(f'{100 - error}% accuracy')
 
+    time_taken_in_ns = time.perf_counter_ns() - begin
+
+    print(f'time taken in s: {time_taken_in_ns / 1000000000}')
+    print(f'time taken in m: {time_taken_in_ns / 60000000000}')
+
     # plot data
     # plot_loss_and_error(loss_list, error_list)
-    plt.plot(error_list)
+    plt.plot(acc_list, label='train error')
+    plt.plot(error_list, label='validation error')
+    plt.legend()
     plt.show()
 
 
