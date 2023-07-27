@@ -1,6 +1,9 @@
 import random
 from abc import abstractmethod
 
+from neural_network.network import LeNetFromPaper
+from util import state_dict_to_list
+
 SOLUTION_SIZE = 61706
 
 
@@ -13,6 +16,12 @@ class ConstructionHeuristicOperator:
     @abstractmethod
     def construct_solution(self):
         pass
+
+
+class NNInitializationConstructionHeuristic(ConstructionHeuristicOperator):
+
+    def construct_solution(self):
+        return state_dict_to_list(LeNetFromPaper().state_dict())
 
 
 class UniformConstructionHeuristic(ConstructionHeuristicOperator):
