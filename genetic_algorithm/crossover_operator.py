@@ -1,7 +1,9 @@
+import copy
 import random
 from abc import abstractmethod
-from math import floor
+from math import floor, sqrt
 
+from genetic_algorithm.construction_heuristic import SOLUTION_SIZE
 from genetic_algorithm.solution_representation import SolutionRepresentation
 
 
@@ -73,7 +75,7 @@ class LayerCrossoverOperator(CrossoverOperator):
     def __init__(self, crossover_rate):
         super(LayerCrossoverOperator, self).__init__(crossover_rate)
 
-        self.layer_numbers = [6 * 1 * 5 * 5, 6, 16 * 6 * 5 * 5, 16, 120 * 400, 120, 84 * 120, 84, 10 * 84, 10]
+        self.layer_numbers = [(6 * 1 * 5 * 5) + 6, (16 * 6 * 5 * 5) + 16, (120 * 400) + 120, (84 * 120) + 84, (10 * 84) + 10]
 
     def crossover(self, population: list[SolutionRepresentation]) -> list[SolutionRepresentation]:
         fitness_calculator = population[0].fitness_calculator
@@ -107,7 +109,6 @@ class LayerCrossoverOperator(CrossoverOperator):
 
         return crossed_over
 
-
 class UniformCrossoverOperator(CrossoverOperator):
 
     def __init__(self, crossover_rate, uniform_prob=0.5):
@@ -136,6 +137,47 @@ class UniformCrossoverOperator(CrossoverOperator):
                 else:
                     first_result.append(second_representation[i])
                     second_result.append(first_representation[i])
+
+            crossed_over += [
+                SolutionRepresentation(first_result, fitness_calculator),
+                SolutionRepresentation(second_result, fitness_calculator)
+            ]
+
+        return crossed_over
+
+
+class FastUniformCrossoverOperator(CrossoverOperator):
+
+    def __init__(self, crossover_rate, uniform_prob=0.5, solution_size=SOLUTION_SIZE):
+        super(FastUniformCrossoverOperator, self).__init__(crossover_rate)
+        self.uniform_prob = uniform_prob
+
+        self.solution_indices = [x for x in range(solution_size)]
+
+    def crossover(self, population: list[SolutionRepresentation]) -> list[SolutionRepresentation]:
+        fitness_calculator = population[0].fitness_calculator
+        n_crossovers = floor((self.crossover_rate * len(population)) / 2)
+
+        crossed_over = []
+
+        for _ in range(n_crossovers):
+            parents = random.sample(population, 2)
+
+            first_representation = parents[0].solution_representation
+            second_representation = parents[1].solution_representation
+
+            first_result = copy.copy(first_representation)
+            second_result = copy.copy(second_representation)
+
+            mu = self.uniform_prob * len(first_result)
+            sigma = sqrt(len(first_result) * self.uniform_prob * (1 - self.uniform_prob))
+
+            num_crossover_bits = round(random.gauss(mu, sigma))
+            crossover_indices = random.sample(self.solution_indices, num_crossover_bits)
+
+            for index in crossover_indices:
+                first_result[index] = second_representation[index]
+                second_result[index] = first_representation[index]
 
             crossed_over += [
                 SolutionRepresentation(first_result, fitness_calculator),
