@@ -26,7 +26,7 @@ class LeNetSmacWrapper():
         return cs
 
     def train(self, config: Configuration, seed: int = 0) -> float:
-        classifier = LeNetAlgorithmWrapper(config['learning_rate'], epochs=2)
+        classifier = LeNetAlgorithmWrapper(config['learning_rate'], epochs=15)
 
         k = 5
         splits = KFold(n_splits=k, shuffle=True, random_state=42)
@@ -74,13 +74,13 @@ if __name__ == "__main__":
     model = LeNetSmacWrapper()
 
     # Scenario object specifying the optimization "environment"
-    scenario = Scenario(model.configspace, n_trials=20)
+    scenario = Scenario(model.configspace, n_trials=50)
 
     # Now we use SMAC to find the best hyperparameters
     smac = HyperparameterOptimizationFacade(
         scenario,
         model.train,  # We pass the target function here
-        overwrite=False  # Overrides any previous results that are found that are inconsistent with the meta-data
+        overwrite=True  # Overrides any previous results that are found that are inconsistent with the meta-data
     )
 
     print(smac.intensifier.get_incumbent().get_dictionary())
