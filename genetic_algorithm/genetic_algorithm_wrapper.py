@@ -42,7 +42,10 @@ class GeneticAlgorithmWrapper(algorithm_wrapper):
         return [error]
 
     def __training_run(self, training_data):
-        fitness_calculator = self.fitness_calculator(training_data)
+        training_populations = []
+        self.total_best_individual = None
+
+        fitness_calculator = self.fitness_calculator(training_data, sampling_rate=0.005)
 
         if self.current_population is None:
             self.current_population = self.__create_population(self.population_size, fitness_calculator)
@@ -52,6 +55,10 @@ class GeneticAlgorithmWrapper(algorithm_wrapper):
             print(f'generation: {gen}')
 
             self.__calculate_population_fitness(population)
+
+            current_population_fitness = [ind.fitness for ind in population]
+            training_populations.append(current_population_fitness)
+
             print('fitness calculated')
             best, selected = self.selection_behaviour.select(population)
 
@@ -64,6 +71,8 @@ class GeneticAlgorithmWrapper(algorithm_wrapper):
             population = self.__create_next_generation(crossed_over, population, self.total_best_individual)
 
         self.current_population = population
+
+        print(training_populations)
 
     def __validation_run(self, validation_data):
         model = self.get_current_model()
